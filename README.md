@@ -34,3 +34,6 @@ namespace Your.NameSpace
  
  ### Deployment
   Locate your orchestrator installation, copy the .dll file to the plugins folder, and restart your orchestrator instance.
+  
+  ### License
+  Current samples are available under [UiPath Open Platform License Agreement (“OPLA”)](https://github.com/UiPath/Orchestrator-CredentialStorePlugins-Samples/blob/master/UiPath_Activity_License_Agreement.pdf)
