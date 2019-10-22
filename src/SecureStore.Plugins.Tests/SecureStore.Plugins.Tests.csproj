@@ -7,6 +7,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="System.Data.Odbc" Version="4.6.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
@@ -14,10 +15,5 @@
   <ItemGroup>
     <ProjectReference Include="..\SecureStore.RandomPass\SecureStore.RandomPass.csproj" />
     <ProjectReference Include="..\SecureStore.SqlPass\SecureStore.SqlPass.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="UiPath.Orchestrator.Extensibility" >
-      <HintPath>..\..\dependencies\UiPath.Orchestrator.Extensibility.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
