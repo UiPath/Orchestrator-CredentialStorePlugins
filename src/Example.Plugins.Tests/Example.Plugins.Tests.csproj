@@ -13,7 +13,7 @@
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SecureStore.RandomPass\SecureStore.RandomPass.csproj" />
-    <ProjectReference Include="..\SecureStore.SqlPass\SecureStore.SqlPass.csproj" />
+    <ProjectReference Include="..\Example1.RandomPass\Example1.RandomPass.csproj" />
+    <ProjectReference Include="..\Example2.SqlPass\Example2.SqlPass.csproj" />
   </ItemGroup>
 </Project>
