@@ -10,12 +10,12 @@ namespace UiPath.Orchestrator.AzureKeyVault.SecureStore
 {
     public static class KeyUtil
     {
-        // Azure Key Valult names supports only strings mathing "^[0-9a-zA-Z-]{3-24}$" regex
+        // Azure Key Vault names support only strings matching "^[0-9a-zA-Z-]{3-24}$" regex
         // https://docs.microsoft.com/en-us/azure/key-vault/about-keys-secrets-and-certificates
         private const string SupportedSecretCharacterSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIZKLMNOPQRSTUVWXYZ0123456789-";
 
         /// <summary>
-        /// Construct a new name based on a GUID represented witth the valid characters for a Azure Key Vault
+        /// Construct a new name based on a GUID represented with the valid characters for a Azure Key Vault
         /// </summary>
         /// <returns>new unique name for a secret</returns>
         public static string GetNewSecretName()
