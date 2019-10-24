@@ -10,9 +10,9 @@ using UiPath.Orchestrator.Extensibility.SecureStores;
 namespace UiPath.Samples.SecureStores.SqlPasswordStore
 {
     /// <summary>
-    /// A sample secure store plugin reference, describing an implementation of secure store.
-    /// This asmple can be used as a fully functional read/write secure store implementation
-    /// that connects to a SQL database and read/write credentials there.
+    /// A sample secure store plugin reference, describing an implementation of a secure store.
+    /// This sample can be used as a fully functional read/write secure store implementation
+    /// that connects to an SQL database and reads/writes credentials there.
     /// </summary>
     public class SqlPassSecureStore : ISecureStore
     {
@@ -28,8 +28,8 @@ namespace UiPath.Samples.SecureStores.SqlPasswordStore
         public SqlPassContext HostSettings { get; private set; } = null;
 
         /// <summary>
-        /// Initialize the Secure Store plugin with host level appsettings settings
-        /// stored in web.config under the key {Plugins.SecureStores}.(Plugin_Friendy_name}.{SettingName}
+        /// Initialize the Secure Store plugin with host level appSettings settings
+        /// stored in web.config under the key {Plugins.SecureStores}.{Plugin_Friendly_Name}.{SettingName}
         /// </summary>
         /// <param name="hostSettings"></param>
         public void Initialize(Dictionary<string, string> hostSettings)
@@ -224,7 +224,7 @@ namespace UiPath.Samples.SecureStores.SqlPasswordStore
         }
 
         /// <summary>
-        /// Removes the coresponding key/value pair from the store.
+        /// Removes the corresponding key/value pair from the store.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="key"></param>

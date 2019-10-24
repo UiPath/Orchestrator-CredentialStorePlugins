@@ -9,7 +9,7 @@ using UiPath.Orchestrator.Extensibility.SecureStores;
 namespace UiPath.Samples.SecureStores.RandomPasswordGenerator
 {
     /// <summary>
-    /// A sample secure store plugin reference describing an implementation of secure store.
+    /// A sample secure store plugin reference describing an implementation of a secure store.
     /// This sample can be used as a fully functional read-only secure store implementation that will generate a random password
     /// </summary>
     public class RandomPassSecureStore : ISecureStore
@@ -26,8 +26,8 @@ namespace UiPath.Samples.SecureStores.RandomPasswordGenerator
         }
 
         /// <summary>
-        /// Initialize the Secure Store plugin with host level appsetings settings
-        /// stored in web.config under the key {Plugins.SecureStores}.{Plugin_Friendy_name}.{SettingName}
+        /// Initialize the Secure Store plugin with host level appSettings settings
+        /// stored in web.config under the key {Plugins.SecureStores}.{Plugin_Friendly_Name}.{SettingName}
         /// </summary>
         /// <param name="hostSettings"></param>
         public void Initialize(Dictionary<string, string> hostSettings)
@@ -171,7 +171,7 @@ namespace UiPath.Samples.SecureStores.RandomPasswordGenerator
         }
 
         /// <summary>
-        /// Removes the coresponding key/value pair from the store.
+        /// Removes the corresponding key/value pair from the store.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="key"></param>
