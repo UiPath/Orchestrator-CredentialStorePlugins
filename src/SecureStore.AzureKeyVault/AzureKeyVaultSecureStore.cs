@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.KeyVault.Models;
+﻿using AzureKeyVault.SecureStore;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
 using System;

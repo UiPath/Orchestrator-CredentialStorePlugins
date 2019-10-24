@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using AzureKeyVault.SecureStore;
+using Newtonsoft.Json;
 using System;
-using UiPath.Orchestrator.AzureKeyVault.SecureStore;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 
 namespace UiPath.Orchestrator.Extensions.SecureStores.AzureKeyVault

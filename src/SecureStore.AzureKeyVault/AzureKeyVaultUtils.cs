@@ -1,6 +1,6 @@
-﻿using System.Globalization;
+﻿using AzureKeyVault.SecureStore;
+using System.Globalization;
 using System.Threading;
-using UiPath.Orchestrator.AzureKeyVault.SecureStore;
 
 namespace UiPath.Orchestrator.Extensions.SecureStores.AzureKeyVault
 {
