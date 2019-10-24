@@ -115,5 +115,10 @@ Credential assets specific APIs are in the context of a `key`.  The key is the o
   `<add key="Plugins.SecureStores" value="YourSecureStore.dll"/>`
   4. Restart your Orchestrator instance.
   
+  ## F.A.Q.
+  Q1: Why it requires authentication for "Orchestrator Extensibility" nuget feed?
+  
+  A: Currently GitHub Nuget feed is in beta and still [requires authentication]( https://twitter.com/PhaniRajuyn/status/1128371149640019968) even for public repos.
+  
   ### License
   Current samples are available under [UiPath Open Platform License Agreement (“OPLA”)](https://github.com/UiPath/Orchestrator-CredentialStorePlugins-Samples/blob/master/UiPath_Activity_License_Agreement.pdf)
