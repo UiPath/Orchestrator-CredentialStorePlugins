@@ -84,10 +84,21 @@ namespace Your.NameSpace
  Secure store plugins have 2 types of configuration
  1) The Host level configuration is specified in web.config by key-value pairs. The keys have the following format `Plugins.SecureStores.{Plugin_indentifier}.{Setting_name}`. During the start-up of Orchestrator, all host level settings for the current plug-in are injected by a call to `Initialize(Dictionary<string, string> hostSettings)`. The plugin has the option to validate the settings by throwing exception on initialization, and if they are not valid, an error will be logged, and the plugin will not be available for the creation of new credential stores. Existing Robots and Assets using instances of that Secure Store type will fail to load protected values.
  
- 2) Secure Store Instance level configuration. Each secure store instance can specify a configuration relevant only for the current instance. The configuration is in JSON format with fields defined by `IEnumerable<ConfigurationEntry> GetConfiguration();` which will be used to dynamically create new Secure Store UI, for example, this is the UI generated for a new instance of AzureKeyVault Secure Store.
+![Plugin Load Sequence](/docs/img/Pluggable.png)
  
+ 2) Secure Store Instance level configuration. Each secure store instance can specify a configuration relevant only for the current instance. The configuration is in JSON format with fields defined by `IEnumerable<ConfigurationEntry> GetConfiguration();` which will be used to dynamically create new Secure Store UI, for example, this is [the configuration](https://github.com/UiPath/Orchestrator-CredentialStorePlugins/blob/master/src/SecureStore.AzureKeyVault/AzureKeyVaultSecureStore.cs#L200) for the UI generated for a new instance of AzureKeyVault Secure Store.
+ ![Azure Key Vault Config](/docs/img/SecureStoreConfig.PNG)
 When a new Secure Store is defined the configuration will be further validated by calling `Task ValidateContextAsync(string context)`. In the case of AzureKeyVault Secure Store, the validation will check if the basic operations for Create/Read/Update/Delete are supported. 
  
+  ### Assets Credentials
+  
+Credential assets specific APIs are in the context of a `key`.  The key is the optional parameter external_name specified in the Asset creation/edit flow. If external_name is empty, then the key would be the asset name.
+
+ In the case of a read-only store, the credential assets records are already present in the store, and they can be retrieved by correlating with the `key`.
+ 
+ In the case of a read/write store, a new record in the secure store will be generated with the call to ` CreateCredentialsAsync(string context, string key, Credential value)` where value is the username/password pair in the asset definition. The plugin can return a reference for the created record, to be used instead of the external_name key for subsequent operations on the asset credential READ / UPDATE / DELETE. If the returned key is null or empty, the external_name key will be used for subsequent operations.
+ 
+ ![Assets CRUD workflow ](docs/img/Asset%20Diagram%20%5Bexternal%5D.png)
  
  ### Robots Credentials
  
@@ -96,14 +107,7 @@ When a new Secure Store is defined the configuration will be further validated b
  
  In the case of a read/write store, a new record in the secure store will be generated with the call to `CreateValueAsync(string context, string key, string value)` where value is the password for the username used for the robot. The plugin can return a reference for the created record, to be used instead of the external_name key for subsequent operations on the robot credential READ / UPDATE / DELETE. If the returned key is null or empty, the external_name key will be used for subsequent operations.
  
- ### Assets Credentials
- 
-Credential assets specific APIs are in the context of a `key`.  The key is the optional parameter external_name specified in the Asset creation/edit flow. If external_name is empty, then the key would be the asset name.
 
- In the case of a read-only store, the credential assets records are already present in the store, and they can be retrieved by correlating with the `key`.
- 
- In the case of a read/write store, a new record in the secure store will be generated with the call to ` CreateCredentialsAsync(string context, string key, Credential value)` where value is the username/password pair in the asset definition. The plugin can return a reference for the created record, to be used instead of the external_name key for subsequent operations on the asset credential READ / UPDATE / DELETE. If the returned key is null or empty, the external_name key will be used for subsequent operations.
- 
  ## Deployment
   1. Locate your orchestrator installation
   2. Copy the `YourSecureStore.dll` file to the plugins folder
