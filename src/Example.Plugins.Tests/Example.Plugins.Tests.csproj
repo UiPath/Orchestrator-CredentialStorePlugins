@@ -4,8 +4,9 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Moq" Version="4.14.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="System.Data.Odbc" Version="4.6.0" />
+    <PackageReference Include="System.Data.Odbc" Version="4.7.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
     <PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -15,5 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Example1.RandomPass\Example1.RandomPass.csproj" />
     <ProjectReference Include="..\Example2.SqlPass\Example2.SqlPass.csproj" />
+    <ProjectReference Include="..\SecureStore.CyberArkCCP\CyberArkCCP.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 </Project>
