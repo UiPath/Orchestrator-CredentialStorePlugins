@@ -3,7 +3,7 @@
 
 ## Getting Started
  ### Prerequisites
-  Visual Studio with .NET Framework 4.7.2
+  Visual Studio 2019 or newer.
   
  ### Create your own Secure Store plugin
   1. In Visual Studio, create a new Class Library (.NET Standard) Project
@@ -11,7 +11,7 @@
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
