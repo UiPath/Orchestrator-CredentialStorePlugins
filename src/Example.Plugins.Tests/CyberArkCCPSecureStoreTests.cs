@@ -16,29 +16,20 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Security.Cryptography;
 using System.IO;
+using UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Services;
 
 namespace UiPath.Samples.SecureStores.CyberArkCCPStore
 {
     public class CyberArkCCPSecureStoreTests
     {
-        private string ContextIsValidTrue = JsonConvert.SerializeObject(
-            new CyberArkCCPOptions()
-            {
-                ApplicationId = "AppID",
-                Folder = "Folder",
-                Safe = "Safe",
-                Thumbprint = "Thumbprint",
-                URL = "https://localhost"
-            });
         private const string NotJsonString = "This is not a JSON string!";
 
-        private readonly CyberArkSecureStoreCCP subject = new CyberArkSecureStoreCCP();
-        private readonly CyberArkSecureStoreCCP customSubject = new CyberArkSecureStoreCCP(CreateHttpClientHandler(), CreateHttpClient());
+        private readonly CyberArkSecureStoreCCP _simpleStore = new CyberArkSecureStoreCCP();
 
         [Fact]
         public void InitializeDoesNothing()
         {
-            subject.Initialize(new Dictionary<string, string>());
+            _simpleStore.Initialize(null);
         }
 
         [Fact]
@@ -50,14 +41,23 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
                 IsReadOnly = true,
             };
 
-            var actual = subject.GetStoreInfo();
+            var actual = _simpleStore.GetStoreInfo();
             actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
         public void ValidateContextAsyncSucceedsGivenValidJsonString()
         {
-            subject.ValidateContextAsync(ContextIsValidTrue);
+            var validContext = JsonConvert.SerializeObject(
+            new CyberArkCCPOptions()
+            {
+                ApplicationId = "AppID",
+                Folder = "Folder",
+                Safe = "Safe",
+                ClientCertificateThumbprint = "Thumbprint",
+                URL = "https://localhost"
+            });
+        _simpleStore.ValidateContextAsync(validContext);
         }
 
         [Fact]
@@ -70,14 +70,14 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
                 ApplicationId = "AppID",
                 Folder = "Folder",
                 Safe = "Safe",
-                Thumbprint = "Thumbprint",
+                ClientCertificateThumbprint = "Thumbprint",
                 URL = "https://localhost"
             };
             foreach (PropertyInfo propertyInfo in properties)
             {
                 propertyInfo.SetValue(obj, null);
                 var ex = await Assert.ThrowsAsync<SecureStoreException>(
-                    () => subject.ValidateContextAsync(JsonConvert.SerializeObject(obj)));
+                    () => _simpleStore.ValidateContextAsync(JsonConvert.SerializeObject(obj)));
             }
         }
 
@@ -85,7 +85,7 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
         public async void ValidateContextAsyncFailsGivenInvalidJsonString()
         {
             var ex = await Assert.ThrowsAsync<SecureStoreException>(
-                () => subject.ValidateContextAsync(NotJsonString));
+                () => _simpleStore.ValidateContextAsync(NotJsonString));
         }
 
         [Fact]
@@ -96,13 +96,7 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
                     Key = "URL",
-                    DisplayName = "CyberArk CCP URL",
-                    IsMandatory = true,
-                },
-                new ConfigurationValue(ConfigurationValueType.String)
-                {
-                    Key = "Thumbprint",
-                    DisplayName = "CyberArkCCP Certificate thumbprint",
+                    DisplayName = "CCP URL",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
@@ -123,9 +117,21 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
                     DisplayName = "CyberArkCCP Folder",
                     IsMandatory = false,
                 },
+                new ConfigurationValue(ConfigurationValueType.String)
+                {
+                    Key = "ClientCertificateThumbprint",
+                    DisplayName = "CyberArkCCP Client Certificate Thumbprint",
+                    IsMandatory = false,
+                },
+                new ConfigurationValue(ConfigurationValueType.String)
+                {
+                    Key = "CertificateAuthorityThumbprint",
+                    DisplayName ="Personal Store Certificate Authority Thumbprint",
+                    IsMandatory = false,
+                }
             };
 
-            var actual = subject.GetConfiguration();
+            var actual = _simpleStore.GetConfiguration();
             actual.Should().BeEquivalentTo(expected);
         }
 
@@ -145,14 +151,14 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
                         ApplicationId = "AppID",
                         Folder = "Folder",
                         Safe = "Safe",
-                        Thumbprint = certificate.Thumbprint,
+                        ClientCertificateThumbprint = certificate.Thumbprint,
                         URL = "https://localhost"
                     });
 
-                    CyberArkSecureStoreCCP subj = new CyberArkSecureStoreCCP(new HttpClientHandler(), CreateHttpClient());
+                    var credentialStore = CreateCyberArkCCPStoreMock();
 
                     var ex = await Assert.ThrowsAsync<SecureStoreException>(
-                       () => subj.GetValueAsync(context, "Key"));
+                       () => credentialStore.GetValueAsync(context, "Key"));
 
                     //Cleanup
                     store.Remove(certificate);
@@ -176,12 +182,12 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
                         ApplicationId = "AppID",
                         Folder = "Folder",
                         Safe = "Safe",
-                        Thumbprint = cert.Thumbprint,
+                        ClientCertificateThumbprint = cert.Thumbprint,
                         URL = "https://localhost"
                     });
 
-                    CyberArkSecureStoreCCP subj = new CyberArkSecureStoreCCP(new HttpClientHandler(), CreateHttpClient());
-                    var actual = await subj.GetValueAsync(context, "Key");
+                    var credentialStore = CreateCyberArkCCPStoreMock();
+                    var actual = await credentialStore.GetValueAsync(context, "Key");
 
                     var expected = "Password";
                     actual.Should().BeEquivalentTo(expected);
@@ -196,28 +202,29 @@ namespace UiPath.Samples.SecureStores.CyberArkCCPStore
         [Fact]
         public async void GetValueAsyncWithValidContextWithoutCert()
         {
-            var actual = await customSubject.GetValueAsync(ContextIsValidTrue, "Key");
+            var contextWithoutCertificateThumbrint = JsonConvert.SerializeObject(
+            new CyberArkCCPOptions()
+            {
+                ApplicationId = "AppID",
+                Folder = "Folder",
+                Safe = "Safe",
+                URL = "https://localhost"
+            });
+
+            var actual = await CreateCyberArkCCPStoreMock().GetValueAsync(contextWithoutCertificateThumbrint, "Key");
             var expected = "Password";
             actual.Should().BeEquivalentTo(expected);
         }
 
-        private static HttpClientHandler CreateHttpClientHandler()
+        private static CyberArkSecureStoreCCP CreateCyberArkCCPStoreMock()
         {
-            var mock = new Mock<HttpClientHandler>();
-            using (var cert = new X509Certificate2())
-            {
-                var certCollection = new X509Certificate2Collection() { cert };
-                mock.Object.ClientCertificates.Add(certCollection[0]);
-            }
+            var mock = new Mock<HttpClient>(new CustomMsgHandler());
+            var httpClientFactoryMock = new Mock<IHttpClientFactory>();
+            httpClientFactoryMock
+                .Setup(f => f.CreateWithCertificate(It.IsAny<X509Certificate2>(), It.IsAny<string>()))
+                .Returns(mock.Object);
 
-            return mock.Object;
-        }
-
-        private static HttpClient CreateHttpClient()
-        {
-            var handler = new CustomMsgHandler();
-            var mock = new Mock<HttpClient>(handler);
-            return mock.Object;
+            return new CyberArkSecureStoreCCP(httpClientFactoryMock.Object, new X509CertificateManager());
         }
 
         static X509Certificate2 CreateSelfSignedCertificateWithoutPrivateKey()

@@ -10,7 +10,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
         /// <summary>
         /// A Cyberark authentication certificate thumbprint.
         /// </summary>
-        public string Thumbprint { get; set; }
+        public string ClientCertificateThumbprint { get; set; }
 
         /// <summary>
         /// A Cyberark login element used by a custom application
@@ -26,5 +26,10 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
         /// A Cyberark sub-group of a Safe.
         /// </summary>
         public string Folder { get; set; }
+
+        /// <summary>
+        /// A Cyberark personal store certificate authority thumbprint.
+        /// </summary>
+        public string CertificateAuthorityThumbprint { get; set; }
     }
 }

@@ -8,8 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources
-{
+namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources {
     using System;
     
     
@@ -40,7 +39,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CyberArkCCP.Resources.Resource", typeof(Resource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources.Resource", typeof(Resource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -62,6 +61,15 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid operation. Password change in progress..
+        /// </summary>
+        internal static string CyberArkPasswordChangeInProgress {
+            get {
+                return ResourceManager.GetString("CyberArkPasswordChangeInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password for credentials stored in CyberArk is read-only..
         /// </summary>
         internal static string CyberArkReadOnly {
@@ -71,7 +79,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid Secure Store context.
+        ///   Looks up a localized string similar to Invalid Secure Store context..
         /// </summary>
         internal static string InvalidSecureStoreContext {
             get {
@@ -89,7 +97,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Certificate error.
+        ///   Looks up a localized string similar to Certificate not found in user personal certificate store..
         /// </summary>
         internal static string SecureStoreCert {
             get {
@@ -125,7 +133,16 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CyberArkCCP Certificate thumbprint.
+        ///   Looks up a localized string similar to Personal Store Certificate Authority Thumbprint.
+        /// </summary>
+        internal static string SettingPersonalStoreCAThumbprint {
+            get {
+                return ResourceManager.GetString("SettingPersonalStoreCAThumbprint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CyberArkCCP Client Certificate Thumbprint.
         /// </summary>
         internal static string SettingThumbprint {
             get {

@@ -1,59 +1,31 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.Configuration;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 using UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Resources;
+using UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP.Services;
 
 namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
 {
     public class CyberArkSecureStoreCCP : ISecureStore
     {
         private const string NameIdentifier = "CyberArkCCP";
-        private readonly HttpClientHandler _httpClientHandler;
-        private readonly HttpClient _httpClient;
-        private string _thumbprint;
+        private const int PasswordChangeInProgressRetryCount = 4;
+        private const int PasswordChangeDelayMS = 1500;
+
+        private readonly HttpClientCache _httpClientCache;
 
         public CyberArkSecureStoreCCP()
         {
-            _httpClientHandler = new HttpClientHandler();
-
-            //this will check if the root cert is in the personal store as you don't have access in the Root store in Azure Web App
-            _httpClientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) =>
-            {
-                //Console.WriteLine($"sslPolicyErrors: {sslPolicyErrors}, cert.Verify: {cert.Verify()}");
-                if (!cert.Verify() && sslPolicyErrors == System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors)
-                {
-                    using (X509Store currentUserStore = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-                    {
-                        currentUserStore.Open(OpenFlags.ReadOnly);
-                        foreach (var storeCertificate in currentUserStore.Certificates)
-                        {
-                            foreach (var chainElement in chain.ChainElements)
-                            {
-                                if (storeCertificate.Thumbprint == chainElement.Certificate.Thumbprint)
-                                {
-                                    currentUserStore.Close();
-                                    return true;
-                                }
-                            }
-                        }
-                        currentUserStore.Close();
-                    }
-                }
-                return false;
-            };
-            _httpClient = new HttpClient(_httpClientHandler);
+            var x509CertificateManager = new X509CertificateManager();
+            _httpClientCache = new HttpClientCache(new HttpClientFactory(x509CertificateManager), x509CertificateManager);
         }
 
-        public CyberArkSecureStoreCCP(HttpClientHandler httpClientHandler, HttpClient httpClient)
+        internal CyberArkSecureStoreCCP(IHttpClientFactory httpClientFactory, X509CertificateManager x509CertificateManager)
         {
-            _httpClientHandler = httpClientHandler;
-            _httpClient = httpClient;
+            _httpClientCache = new HttpClientCache(httpClientFactory, x509CertificateManager);
         }
 
         public SecureStoreInfo GetStoreInfo() =>
@@ -113,12 +85,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "Thumbprint",
-                    DisplayName = SecureStoresUtil.GetLocalizedResource(nameof(Resource.SettingThumbprint)),
-                    IsMandatory = false,
-                },
-                new ConfigurationValue(ConfigurationValueType.String)
-                {
                     Key = "ApplicationId",
                     DisplayName = SecureStoresUtil.GetLocalizedResource(nameof(Resource.SettingNameApplicationID)),
                     IsMandatory = true,
@@ -133,6 +99,18 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
                 {
                     Key = "Folder",
                     DisplayName = SecureStoresUtil.GetLocalizedResource(nameof(Resource.SettingNameFolder)),
+                    IsMandatory = false,
+                },
+                new ConfigurationValue(ConfigurationValueType.String)
+                {
+                    Key = "ClientCertificateThumbprint",
+                    DisplayName = SecureStoresUtil.GetLocalizedResource(nameof(Resource.SettingThumbprint)),
+                    IsMandatory = false,
+                },
+                new ConfigurationValue(ConfigurationValueType.String)
+                {
+                    Key = "CertificateAuthorityThumbprint",
+                    DisplayName = SecureStoresUtil.GetLocalizedResource(nameof(Resource.SettingPersonalStoreCAThumbprint)),
                     IsMandatory = false,
                 },
             };
@@ -180,91 +158,29 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
                     normalizationException);
         }
 
-        private Task<CyberArkCCPPassword> ReadFromCyberArkCCP(string context, string key)
+        private async Task<CyberArkCCPPassword> ReadFromCyberArkCCP(string context, string key)
         {
             SecureStoresUtil.ThrowIfNull(key);
             var ctx = ThrowIfInvalidContext(context);
-
-            var certCollection = new X509Certificate2Collection();
-            if (_thumbprint != ctx.Thumbprint)
-            {
-                _httpClientHandler.ClientCertificates.Clear();
-            }
-
-            if (_httpClientHandler.ClientCertificates.Count == 0 && !string.IsNullOrEmpty(ctx.Thumbprint))
-            {
-                certCollection = GetCertificateForCCPAuth(ctx.Thumbprint);
-                Exception normalizationException = null;
-
-                if (certCollection.Count != 1)
-                {
-                    throw new SecureStoreException(
-                        SecureStoreException.Type.InvalidConfiguration,
-                        SecureStoresUtil.GetLocalizedResource(nameof(Resource.SecureStoreCert)),
-                        normalizationException);
-                }
-                if (!certCollection[0].HasPrivateKey)
-                {
-                    throw new SecureStoreException(
-                        SecureStoreException.Type.InvalidConfiguration,
-                        SecureStoresUtil.GetLocalizedResource(nameof(Resource.SecureStoreCert)),
-                        normalizationException);
-                }
-                _httpClientHandler.ClientCertificates.Add(certCollection[0]);
-                _thumbprint = ctx.Thumbprint;
-            }
-            return GetPasswordFromCCP(ctx, key);
-        }
-
-        private async Task<CyberArkCCPPassword> GetPasswordFromCCP(CyberArkCCPOptions ctx, string key)
-        {
             Exception normalizationException = null;
             try
             {
-                string obj;
-                key = key.Replace('\\', '-');
-                if (string.IsNullOrEmpty(ctx.Folder))
-                {
-                    obj = $"{key}";
-                }
-                else
-                {
-                    obj = $"{ctx.Folder}\\{key}";
-                }
+                var uri = GetAimServiceUri(key, ctx);
+                
+                var (cyberArkPassword, content) = await GetCyberArkPasswordAsync(uri,
+                    ctx.ClientCertificateThumbprint,
+                    ctx.CertificateAuthorityThumbprint);
 
-                var uri = new Uri(ctx.URL + $"/AIMWebService/api/Accounts?appid={ctx.ApplicationId}&safe={ctx.Safe}&object={obj}");
-                var response = await _httpClient.GetAsync(uri);
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<CyberArkCCPPassword>(content);
-
-                if (!string.IsNullOrEmpty(result.PasswordChangeInProcess))
-                {
-                    if (result.PasswordChangeInProcess == "True")
-                    {
-                        for (int i = 0; i < 3; i++)
-                        {
-                            response = await _httpClient.GetAsync(uri);
-                            content = await response.Content.ReadAsStringAsync();
-                            result = JsonConvert.DeserializeObject<CyberArkCCPPassword>(content);
-                            if (result.PasswordChangeInProcess == "False")
-                            {
-                                break;
-                            }
-                            await Task.Delay(1500);
-                        }
-                    }
-                }
-
-                if (string.IsNullOrEmpty(result.Content))
+                if (string.IsNullOrEmpty(cyberArkPassword.Content))
                 {
                     var error = JsonConvert.DeserializeObject<CyberArkCCPError>(content);
                     throw new SecureStoreException(
-                    SecureStoreException.Type.InvalidConfiguration,
-                    $"{error.ErrorCode} - {error.ErrorMsg}",
-                    normalizationException);
+                        SecureStoreException.Type.InvalidConfiguration,
+                        $"{error.ErrorCode} - {error.ErrorMsg}",
+                        normalizationException);
                 }
 
-                return result;
+                return cyberArkPassword;
             }
             catch (Exception ex)
             {
@@ -277,41 +193,50 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.CyberArkCCP
                     normalizationException);
         }
 
-        private X509Certificate2Collection GetCertificateForCCPAuth(string thumbprint)
+        private async Task<(CyberArkCCPPassword, string)> GetCyberArkPasswordAsync(
+            Uri uri,
+            string clientCertificateThumbprint,
+            string certificateAuthorityThumbprint)
         {
-            Exception normalizationException = null;
-
-            var certCollection = new X509Certificate2Collection();
-            try
+            for (int i = 0; i < PasswordChangeInProgressRetryCount; i++)
             {
-                using (X509Store localMachineStore = new X509Store(StoreName.My, StoreLocation.LocalMachine))
+                var httpClient = _httpClientCache.GetOrCreateWithCertificate(clientCertificateThumbprint, certificateAuthorityThumbprint);
+                
+                using (var response = await httpClient.GetAsync(uri))
                 {
-                    localMachineStore.Open(OpenFlags.ReadOnly);
-                    //`validOnly` arg is set to false so it can work with self-signed without CA certs
-                    certCollection = localMachineStore.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-                    localMachineStore.Close();
-                }
-                if (certCollection.Count == 0)
-                {
-                    using (X509Store currentUserStore = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                    response.EnsureSuccessStatusCode();
+                    var content = await response.Content.ReadAsStringAsync();
+                    var cyberArkPassword = JsonConvert.DeserializeObject<CyberArkCCPPassword>(content);
+
+                    if (cyberArkPassword.PasswordChangeInProcess != "True")
                     {
-                        currentUserStore.Open(OpenFlags.ReadOnly);
-                        //`validOnly` arg is set to false so it can work with self-signed without CA certs
-                        certCollection = currentUserStore.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-                        currentUserStore.Close();
+                        return (cyberArkPassword, content);
                     }
                 }
-                return certCollection;
+
+                await Task.Delay(PasswordChangeDelayMS);
             }
-            catch (Exception ex)
+            
+            throw new SecureStoreException(
+                        SecureStoreException.Type.UnsupportedOperation,
+                        SecureStoresUtil.GetLocalizedResource(nameof(Resource.CyberArkPasswordChangeInProgress)));
+        }
+
+        private static Uri GetAimServiceUri(string key, CyberArkCCPOptions ctx)
+        {
+            string obj;
+            key = key.Replace('\\', '-');
+            if (string.IsNullOrEmpty(ctx.Folder))
             {
-                normalizationException = ex;
+                obj = $"{key}";
+            }
+            else
+            {
+                obj = $"{ctx.Folder}\\{key}";
             }
 
-            throw new SecureStoreException(
-                    SecureStoreException.Type.InvalidConfiguration,
-                    SecureStoresUtil.GetLocalizedResource(nameof(Resource.SecureStoreCert)),
-                    normalizationException);
+            var uri = new Uri(ctx.URL + $"/AIMWebService/api/Accounts?appid={ctx.ApplicationId}&safe={ctx.Safe}&object={obj}");
+            return uri;
         }
     }
 }

@@ -16,7 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Example1.RandomPass\Example1.RandomPass.csproj" />
     <ProjectReference Include="..\Example2.SqlPass\Example2.SqlPass.csproj" />
-    <ProjectReference Include="..\SecureStore.CyberArkCCP\CyberArkCCP.csproj" />
+    <ProjectReference Include="..\SecureStore.CyberArkCCP\CyberArkCCP.SecureStore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Net.Http" />

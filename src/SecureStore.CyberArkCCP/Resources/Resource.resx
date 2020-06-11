@@ -117,17 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CyberArkPasswordChangeInProgress" xml:space="preserve">
+    <value>Invalid operation. Password change in progress.</value>
+  </data>
   <data name="CyberArkReadOnly" xml:space="preserve">
     <value>Password for credentials stored in CyberArk is read-only.</value>
   </data>
   <data name="InvalidSecureStoreContext" xml:space="preserve">
-    <value>Invalid Secure Store context</value>
+    <value>Invalid Secure Store context.</value>
   </data>
   <data name="SecureStore" xml:space="preserve">
     <value>Invalid Configuration for secure store</value>
   </data>
   <data name="SecureStoreCert" xml:space="preserve">
-    <value>Certificate error</value>
+    <value>Certificate not found in user personal certificate store.</value>
   </data>
   <data name="SettingNameApplicationID" xml:space="preserve">
     <value>Application ID</value>
@@ -137,6 +140,9 @@
   </data>
   <data name="SettingNameSafe" xml:space="preserve">
     <value>CyberArkCCP Safe</value>
+  </data>
+  <data name="SettingPersonalStoreCAThumbprint" xml:space="preserve">
+    <value>Personal Store Certificate Authority Thumbprint</value>
   </data>
   <data name="SettingThumbprint" xml:space="preserve">
     <value>CyberArkCCP Client Certificate Thumbprint</value>
