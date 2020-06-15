@@ -118,7 +118,7 @@ Credential assets specific APIs are in the context of a `key`.  The key is the o
   ## F.A.Q.
   Q1: Why it requires authentication for "Orchestrator Extensibility" nuget feed?
   
-  A: Currently GitHub Nuget feed is in beta and still [requires authentication]( https://twitter.com/PhaniRajuyn/status/1128371149640019968) even for public repos.
+  A: Currently GitHub Nuget feed is in beta and still requires authentication, even for public repos. See [the docs](https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-dotnet-cli-for-use-with-github-packages) for how to authenticate to the feed.
   
   ### License
   Current samples are available under [UiPath Open Platform License Agreement (“OPLA”)](https://github.com/UiPath/Orchestrator-CredentialStorePlugins-Samples/blob/master/UiPath_Activity_License_Agreement.pdf)
