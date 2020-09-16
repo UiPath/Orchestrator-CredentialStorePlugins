@@ -14,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.2" />
+    <PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.4" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources\Resource.Designer.cs">
