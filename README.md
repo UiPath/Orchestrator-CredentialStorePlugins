@@ -15,7 +15,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="UiPath.Core.Extensibility" Version="19.10" />
+    <PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.4" />
     (Other dependencies here)
   </ItemGroup>
 </Project>
@@ -114,11 +114,6 @@ Credential assets specific APIs are in the context of a `key`.  The key is the o
   3. Enabled plugin via updating [web.config](https://docs.uipath.com/orchestrator/v2019/docs/app-settings#section-password-vault) where
   `<add key="Plugins.SecureStores" value="YourSecureStore.dll"/>`
   4. Restart your Orchestrator instance.
-  
-  ## F.A.Q.
-  Q1: Why it requires authentication for "Orchestrator Extensibility" nuget feed?
-  
-  A: Currently GitHub Nuget feed is in beta and still requires authentication, even for public repos. See [the docs](https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-dotnet-cli-for-use-with-github-packages) for how to authenticate to the feed.
   
   ### License
   Current samples are available under [UiPath Open Platform License Agreement (“OPLA”)](https://github.com/UiPath/Orchestrator-CredentialStorePlugins-Samples/blob/master/UiPath_Activity_License_Agreement.pdf)
