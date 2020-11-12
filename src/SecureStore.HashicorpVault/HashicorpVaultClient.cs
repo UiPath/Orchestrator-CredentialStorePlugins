@@ -35,7 +35,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     var cubbySecret = await keyVaultClient.V1.Secrets.Cubbyhole.ReadSecretAsync(secretName);
                     return cubbySecret.Data[secretName].ToString();
                 default:
-                    return null;
+                    throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
             }
         }
 
@@ -57,7 +57,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     await keyVaultClient.V1.Secrets.Cubbyhole.WriteSecretAsync(secretName, secretToSave);
                     return secretName;
                 default:
-                    return null;
+                    throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
             }
         }
 
@@ -78,7 +78,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     await keyVaultClient.V1.Secrets.Cubbyhole.DeleteSecretAsync(secretName);
                     break;
                 default:
-                    return;
+                    throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
             }
         }
 
@@ -108,7 +108,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                         Password = cubbySecret.Data["Password"].ToString(),
                     };
                 default:
-                    return null;
+                    throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
             }
         }
 
@@ -134,7 +134,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     await keyVaultClient.V1.Secrets.Cubbyhole.WriteSecretAsync(secretName, secretToSave);
                     return secretName;
                 default:
-                    return null;
+                    throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
             }
         }
 
@@ -159,7 +159,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     authMethod = new TokenAuthMethodInfo(_context.Token);
                     break;
                 default:
-                    throw new InvalidOperationException("Unsupported authentication type");
+                    throw new NotSupportedException($"Authentication type '{_context.AuthenticationType}' is not supported.");
             }
 
             var vaultClientSettings = new VaultClientSettings(_context.VaultUri.ToString(), authMethod)
