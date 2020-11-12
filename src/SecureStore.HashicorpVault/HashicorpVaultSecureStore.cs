@@ -22,7 +22,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public HashicorpVaultSecureStore()
         {
-            _clientFactory = new HashicorpVaultClientFactory();
+            _clientFactory = HashicorpVaultClientFactory.Instance;
         }
 
         public async Task<string> GetValueAsync(string context, string key)

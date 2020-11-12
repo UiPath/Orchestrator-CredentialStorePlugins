@@ -167,10 +167,11 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     throw new InvalidOperationException("Unsupported authentication type");
             }
 
-            var vaultClientSettings = new VaultClientSettings(_context.VaultUri.ToString(), authMethod);
-            vaultClientSettings.VaultServiceTimeout = TimeSpan.FromSeconds(30); // TODO configurable
+            var vaultClientSettings = new VaultClientSettings(_context.VaultUri.ToString(), authMethod)
+            {
+                VaultServiceTimeout = TimeSpan.FromSeconds(30)
+            };
 
-            // TODO http client reuse: vaultClientSettings.MyHttpClientProviderFunc = someclientfrompool;
             if (!string.IsNullOrWhiteSpace(_context.Namespace))
             {
                 vaultClientSettings.Namespace = _context.Namespace;

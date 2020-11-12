@@ -44,5 +44,24 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         public SecretsEngine SecretsEngine { get; set; }
 
         public string Namespace { get; set; }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (VaultUri != null ? VaultUri.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int) AuthenticationType;
+                hashCode = (hashCode * 397) ^ (RoleId != null ? RoleId.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (SecretId != null ? SecretId.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Username != null ? Username.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Password != null ? Password.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Certificate != null ? Certificate.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (CertificatePassword != null ? CertificatePassword.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Token != null ? Token.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int) SecretsEngine;
+                hashCode = (hashCode * 397) ^ (Namespace != null ? Namespace.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
     }
 }
