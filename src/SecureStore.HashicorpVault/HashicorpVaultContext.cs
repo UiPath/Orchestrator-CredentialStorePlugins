@@ -8,7 +8,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         AppRole,
         UsernamePassword,
         Ldap,
-        ClientCertificate,
         Token,
     }
 
@@ -35,10 +34,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public string Password { get; set; }
 
-        public string Certificate { get; set; }
-
-        public string CertificatePassword { get; set; }
-
         public string Token { get; set; }
 
         public SecretsEngine SecretsEngine { get; set; }
@@ -55,8 +50,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 hashCode = (hashCode * 397) ^ (SecretId != null ? SecretId.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Username != null ? Username.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Password != null ? Password.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Certificate != null ? Certificate.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (CertificatePassword != null ? CertificatePassword.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Token != null ? Token.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (int) SecretsEngine;
                 hashCode = (hashCode * 397) ^ (Namespace != null ? Namespace.GetHashCode() : 0);

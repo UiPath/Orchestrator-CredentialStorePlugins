@@ -240,7 +240,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 new ConfigurationSection
                 {
                     Key = $"{nameof(AuthenticationType.UsernamePassword)}/{nameof(AuthenticationType.Ldap)}",
-                    DisplayName = nameof(AuthenticationType.ClientCertificate),
+                    DisplayName = $"{nameof(AuthenticationType.UsernamePassword)}/{nameof(AuthenticationType.Ldap)}",
                     Configurations = new[]
                     {
                         new ConfigurationValue(ConfigurationValueType.String)
@@ -253,26 +253,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                         {
                             Key = "Password",
                             DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingPassword)),
-                            IsMandatory = false,
-                        },
-                    },
-                },
-                new ConfigurationSection
-                {
-                    Key = nameof(AuthenticationType.ClientCertificate),
-                    DisplayName = nameof(AuthenticationType.ClientCertificate),
-                    Configurations = new[]
-                    {
-                        new ConfigurationValue(ConfigurationValueType.Secret)
-                        {
-                            Key = "Certificate",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingCertificate)),
-                            IsMandatory = false,
-                        },
-                        new ConfigurationValue(ConfigurationValueType.Secret)
-                        {
-                            Key = "CertificatePassword",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingCertificatePassword)),
                             IsMandatory = false,
                         },
                     },

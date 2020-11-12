@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.AppRole;
-using VaultSharp.V1.AuthMethods.Cert;
 using VaultSharp.V1.AuthMethods.LDAP;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
@@ -156,9 +154,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     break;
                 case AuthenticationType.Ldap:
                     authMethod = new LDAPAuthMethodInfo(_context.Username, _context.Password);
-                    break;
-                case AuthenticationType.ClientCertificate:
-                    authMethod = new CertAuthMethodInfo(new X509Certificate2(_context.Certificate, _context.CertificatePassword));
                     break;
                 case AuthenticationType.Token:
                     authMethod = new TokenAuthMethodInfo(_context.Token);

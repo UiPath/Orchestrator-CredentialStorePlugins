@@ -84,22 +84,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     }
 
                     break;
-                case AuthenticationType.ClientCertificate:
-                    if (string.IsNullOrEmpty(_context.Certificate))
-                    {
-                        throw new SecureStoreException(
-                            SecureStoreException.Type.InvalidConfiguration,
-                            HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.HashicorpVaultSettingInvalidOrMissing), nameof(_context.Certificate)));
-                    }
-
-                    if (string.IsNullOrEmpty(_context.CertificatePassword))
-                    {
-                        throw new SecureStoreException(
-                            SecureStoreException.Type.InvalidConfiguration,
-                            HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.HashicorpVaultSettingInvalidOrMissing), nameof(_context.CertificatePassword)));
-                    }
-
-                    break;
                 case AuthenticationType.Token:
 
                     if (string.IsNullOrEmpty(_context.Token))
