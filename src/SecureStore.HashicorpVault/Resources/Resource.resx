@@ -144,11 +144,17 @@
   <data name="SettingCertificatePassword" xml:space="preserve">
     <value>Certificate Password</value>
   </data>
+  <data name="SettingSecretsEnginePath" xml:space="preserve">
+    <value>Secrets Engine DataPath</value>
+  </data>
   <data name="SettingNamespace" xml:space="preserve">
     <value>Namespace</value>
   </data>
   <data name="SettingPassword" xml:space="preserve">
     <value>Password</value>
+  </data>
+  <data name="SettingDataPath" xml:space="preserve">
+    <value>Data Path</value>
   </data>
   <data name="SettingRoleId" xml:space="preserve">
     <value>Role Id</value>

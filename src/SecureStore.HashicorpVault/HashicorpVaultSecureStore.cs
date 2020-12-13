@@ -195,7 +195,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
-                    await keyVaultClient.DeleteSecretAsync(secretName);
+                    // We use destroy because we don't want to leave behind key metadata with nothing inside for each edit of the store
+                    await keyVaultClient.DeleteSecretAsync(secretName, destroy: true);
                 },
                 "delete");
         }
@@ -217,59 +218,35 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     IsMandatory = true,
                     PossibleValues = Enum.GetNames(typeof(AuthenticationType)),
                 },
-                new ConfigurationSection
+                new ConfigurationValue(ConfigurationValueType.Secret)
                 {
-                    Key = nameof(AuthenticationType.AppRole),
-                    DisplayName = nameof(AuthenticationType.AppRole),
-                    Configurations = new[]
-                    {
-                        new ConfigurationValue(ConfigurationValueType.Secret)
-                        {
-                            Key = "RoleId",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingRoleId)),
-                            IsMandatory = false,
-                        },
-                        new ConfigurationValue(ConfigurationValueType.Secret)
-                        {
-                            Key = "SecretId",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingSecretId)),
-                            IsMandatory = false,
-                        },
-                    },
+                    Key = "RoleId",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingRoleId)),
+                    IsMandatory = false,
                 },
-                new ConfigurationSection
+                new ConfigurationValue(ConfigurationValueType.Secret)
                 {
-                    Key = $"{nameof(AuthenticationType.UsernamePassword)}/{nameof(AuthenticationType.Ldap)}",
-                    DisplayName = $"{nameof(AuthenticationType.UsernamePassword)}/{nameof(AuthenticationType.Ldap)}",
-                    Configurations = new[]
-                    {
-                        new ConfigurationValue(ConfigurationValueType.String)
-                        {
-                            Key = "Username",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingUsername)),
-                            IsMandatory = false,
-                        },
-                        new ConfigurationValue(ConfigurationValueType.Secret)
-                        {
-                            Key = "Password",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingPassword)),
-                            IsMandatory = false,
-                        },
-                    },
+                    Key = "SecretId",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingSecretId)),
+                    IsMandatory = false,
                 },
-                new ConfigurationSection
+                new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = nameof(AuthenticationType.Token),
-                    DisplayName = nameof(AuthenticationType.Token),
-                    Configurations = new[]
-                    {
-                        new ConfigurationValue(ConfigurationValueType.Secret)
-                        {
-                            Key = "Token",
-                            DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingToken)),
-                            IsMandatory = false,
-                        },
-                    },
+                    Key = "Username",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingUsername)),
+                    IsMandatory = false,
+                },
+                new ConfigurationValue(ConfigurationValueType.Secret)
+                {
+                    Key = "Password",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingPassword)),
+                    IsMandatory = false,
+                },
+                new ConfigurationValue(ConfigurationValueType.Secret)
+                {
+                    Key = "Token",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingToken)),
+                    IsMandatory = false,
                 },
                 new ConfigurationValue(ConfigurationValueType.Choice)
                 {
@@ -277,6 +254,18 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingSecretsEngine)),
                     IsMandatory = true,
                     PossibleValues = Enum.GetNames(typeof(SecretsEngine)),
+                },
+                new ConfigurationValue(ConfigurationValueType.String)
+                {
+                    Key = "SecretsEnginePath",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingSecretsEnginePath)),
+                    IsMandatory = false,
+                },
+                new ConfigurationValue(ConfigurationValueType.String)
+                {
+                    Key = "DataPath",
+                    DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingDataPath)),
+                    IsMandatory = false,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {

@@ -9,12 +9,12 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         Task<string> SetSecretAsync(string secretName, string secretValue);
 
-        Task DeleteSecretAsync(string secretName);
+        Task DeleteSecretAsync(string secretName, bool destroy = false);
 
         Task<Credential> GetCredentialAsync(string secretName);
 
         Task<string> SetCredentialAsync(string secretName, Credential credential);
 
-        Task DeleteCredentialAsync(string secretName);
+        Task DeleteCredentialAsync(string secretName, bool destroy = false);
     }
 }

@@ -107,6 +107,17 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.HashicorpVaultSettingInvalidOrMissing), nameof(_context.SecretsEngine)));
             }
 
+            if (!string.IsNullOrWhiteSpace(_context.DataPath))
+            {
+                _context.DataPath = _context.DataPath.Trim('/');
+            }
+
+            if (string.IsNullOrWhiteSpace(_context.SecretsEnginePath))
+            {
+                // Empty or whitespaces are treated as null
+                _context.SecretsEnginePath = null;
+            }
+
             return _context;
         }
     }

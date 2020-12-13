@@ -142,6 +142,15 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data Path.
+        /// </summary>
+        internal static string SettingDataPath {
+            get {
+                return ResourceManager.GetString("SettingDataPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Namespace.
         /// </summary>
         internal static string SettingNamespace {
@@ -183,6 +192,15 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault.Resources {
         internal static string SettingSecretsEngine {
             get {
                 return ResourceManager.GetString("SettingSecretsEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secrets Engine DataPath.
+        /// </summary>
+        internal static string SettingSecretsEnginePath {
+            get {
+                return ResourceManager.GetString("SettingSecretsEnginePath", resourceCulture);
             }
         }
         

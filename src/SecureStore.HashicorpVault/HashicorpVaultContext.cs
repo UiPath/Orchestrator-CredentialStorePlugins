@@ -38,6 +38,10 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public SecretsEngine SecretsEngine { get; set; }
 
+        public string SecretsEnginePath { get; set; }
+
+        public string DataPath { get; set; }
+
         public string Namespace { get; set; }
 
         public override int GetHashCode()
@@ -52,6 +56,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 hashCode = (hashCode * 397) ^ (Password != null ? Password.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Token != null ? Token.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (int) SecretsEngine;
+                hashCode = (hashCode * 397) ^ (SecretsEnginePath != null ? SecretsEnginePath.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (DataPath != null ? DataPath.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Namespace != null ? Namespace.GetHashCode() : 0);
                 return hashCode;
             }
