@@ -15,18 +15,18 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
     public class HashicorpVaultClient : IHashicorpVaultClient
     {
         private readonly HashicorpVaultContext _context;
-        private readonly Lazy<IVaultClient> _vaultClient;
+        private IVaultClient _vaultClient;
+        private DateTimeOffset _vaultClientCreationTime;
 
         public HashicorpVaultClient(HashicorpVaultContext context)
         {
             _context = context;
-            _vaultClient = new Lazy<IVaultClient>(GetVaultClient);
         }
 
         public async Task<string> GetSecretAsync(string secretName)
         {
-            var vaultClient = _vaultClient.Value;
-            var path = _context.DataPath + "/" + secretName;
+            var vaultClient = GetVaultClient();
+            var path = _context.DataPath + "/" + Uri.EscapeDataString(secretName);
             switch (_context.SecretsEngine)
             {
                 case SecretsEngine.KeyValueV1:
@@ -45,8 +45,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public async Task<string> SetSecretAsync(string secretName, string secretValue)
         {
-            var vaultClient = _vaultClient.Value;
-            var path = _context.DataPath + "/" + secretName;
+            var vaultClient = GetVaultClient();
+            var path = _context.DataPath + "/" + Uri.EscapeDataString(secretName);
             var secretToSave = new Dictionary<string, object> { [secretName] = secretValue };
             switch (_context.SecretsEngine)
             {
@@ -68,8 +68,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public async Task DeleteSecretAsync(string secretName, bool destroy = false)
         {
-            var vaultClient = _vaultClient.Value;
-            var path = _context.DataPath + "/" + secretName;
+            var vaultClient = GetVaultClient();
+            var path = _context.DataPath + "/" + Uri.EscapeDataString(secretName);
             switch (_context.SecretsEngine)
             {
                 case SecretsEngine.KeyValueV1:
@@ -98,8 +98,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public async Task<Credential> GetCredentialAsync(string secretName)
         {
-            var vaultClient = _vaultClient.Value;
-            var path = _context.DataPath + "/" + secretName;
+            var vaultClient = GetVaultClient();
+            var path = _context.DataPath + "/" + Uri.EscapeDataString(secretName);
             switch (_context.SecretsEngine)
             {
                 case SecretsEngine.KeyValueV1:
@@ -116,11 +116,11 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                         Password = adSecret.Data.CurrentPassword,
                     };
                 case SecretsEngine.Cubbyhole:
-                    var cubbySecret = await vaultClient.V1.Secrets.Cubbyhole.ReadSecretAsync(path);
+                    var cubbyholeSecret = await vaultClient.V1.Secrets.Cubbyhole.ReadSecretAsync(path);
                     return new Credential
                     {
-                        Username = cubbySecret.Data["Username"].ToString(),
-                        Password = cubbySecret.Data["Password"].ToString(),
+                        Username = cubbyholeSecret.Data["Username"].ToString(),
+                        Password = cubbyholeSecret.Data["Password"].ToString(),
                     };
                 default:
                     throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
@@ -129,8 +129,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
         public async Task<string> SetCredentialAsync(string secretName, Credential credential)
         {
-            var vaultClient = _vaultClient.Value;
-            var path = _context.DataPath + "/" + secretName;
+            var vaultClient = GetVaultClient();
+            var path = _context.DataPath + "/" + Uri.EscapeDataString(secretName);
             switch (_context.SecretsEngine)
             {
                 case SecretsEngine.KeyValueV1:
@@ -157,6 +157,26 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         public Task DeleteCredentialAsync(string secretName, bool destroy = false) => DeleteSecretAsync(secretName, destroy);
 
         private IVaultClient GetVaultClient()
+        {
+            if (_vaultClient == null)
+            {
+                _vaultClientCreationTime = DateTimeOffset.UtcNow;
+                _vaultClient = CreateVaultClient();
+            }
+            else
+            {
+                // If token expired or will expire in the next 30 seconds, we reset it, so a new one can be generated.
+                var tokenExpiryDate = _vaultClientCreationTime.AddSeconds(_vaultClient.Settings.AuthMethodInfo.ReturnedLoginAuthInfo.LeaseDurationSeconds);
+                if (tokenExpiryDate < DateTimeOffset.UtcNow.AddSeconds(30))
+                {
+                    _vaultClient.V1.Auth.ResetVaultToken();
+                }
+            }
+
+            return _vaultClient;
+        }
+
+        private IVaultClient CreateVaultClient()
         {
             IAuthMethodInfo authMethod;
 

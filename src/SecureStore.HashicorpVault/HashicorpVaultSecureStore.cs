@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.Configuration;
@@ -34,13 +33,11 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 return null; // support for null password
             }
 
-            var passwordKey = key.GetExistingMetadata();
-
             return await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
                     var client = _clientFactory.CreateClient(ctx);
-                    return await client.GetSecretAsync(passwordKey.VaultSecretName);
+                    return await client.GetSecretAsync(key);
                 },
                 "get");
         }
@@ -49,7 +46,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         {
             var ctx = ConvertJsonToContext(context);
             key = key ?? throw new ArgumentNullException(nameof(key));
-            var passwordKey = key.GetExistingMetadata();
 
             try
             {
@@ -57,7 +53,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     async () =>
                     {
                         var client = _clientFactory.CreateClient(ctx);
-                        await client.DeleteSecretAsync(passwordKey.VaultSecretName);
+                        await client.DeleteSecretAsync(key);
                     },
                     "delete");
             }
@@ -73,16 +69,16 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
             // key is null for new secret
             value = value ?? throw new ArgumentNullException(nameof(value));
-            var passwordKey = key.GetWriteMetadata(null);
 
             await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
                     var client = _clientFactory.CreateClient(ctx);
-                    return await client.SetSecretAsync(passwordKey.VaultSecretName, value);
+                    return await client.SetSecretAsync(key, value);
                 },
                 "set");
-            return JsonConvert.SerializeObject(passwordKey);
+
+            return key;
         }
 
         public async Task<Credential> GetCredentialsAsync(string context, string key)
