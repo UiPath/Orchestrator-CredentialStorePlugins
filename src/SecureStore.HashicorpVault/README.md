@@ -106,10 +106,15 @@ cat <<EOF | vault policy write orchestrator-policy -
 path "secret/data/applications/orchestrator/*" {
   capabilities = ["create", "read", "update", "delete"]
 }
+path "secret/metadata/applications/orchestrator/*" {
+  capabilities = ["delete"]
+}
 EOF
 ```
 
 > **_NOTE:_**  When using a kv secret engine version 2, secrets are written and fetched at path `<mount>/data/<secret-path>` as opposed to `<mount>/<secret-path>` in a kv secret engine version 1. It does not change any of the CLI commands (i.e. you do not specify data in your path). However it does change the policies, since capabilities are applied to the real path. In the example above, the path is `secret/data/applications/orchestrator/*` since we are working with a kv secret engine version 2. It would be `secret/applications/orchestrator/*` with a kv secret engine version 1.
+
+> **_NOTE:_** The capability to delete on the `metadata` path is needed only if you want to ensure Orchestrator does not leave behind test keys when verifying connectivity. If this capability is not granted, then a key will be created and left behind when creating the Credential Store in Orchestrator.
 
 Finally, we enable authentication using [`userpass`](https://www.vaultproject.io/docs/auth/userpass) [auth method](https://www.vaultproject.io/docs/auth), then create a user for Orchestrator and assign the previously created policy:
  ```

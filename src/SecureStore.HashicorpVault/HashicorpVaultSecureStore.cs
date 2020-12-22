@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.Configuration;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 using UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault.Resources;
+using VaultSharp.Core;
 
 namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 {
@@ -38,8 +39,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             return await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
-                    IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                    return await keyVaultClient.GetSecretAsync(passwordKey.VaultSecretName);
+                    var client = _clientFactory.CreateClient(ctx);
+                    return await client.GetSecretAsync(passwordKey.VaultSecretName);
                 },
                 "get");
         }
@@ -55,8 +56,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 await ExecuteHashicorpVaultOperation(
                     async () =>
                     {
-                        IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                        await keyVaultClient.DeleteSecretAsync(passwordKey.VaultSecretName);
+                        var client = _clientFactory.CreateClient(ctx);
+                        await client.DeleteSecretAsync(passwordKey.VaultSecretName);
                     },
                     "delete");
             }
@@ -77,8 +78,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
-                    IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                    return await keyVaultClient.SetSecretAsync(passwordKey.VaultSecretName, value);
+                    var client = _clientFactory.CreateClient(ctx);
+                    return await client.SetSecretAsync(passwordKey.VaultSecretName, value);
                 },
                 "set");
             return JsonConvert.SerializeObject(passwordKey);
@@ -88,13 +89,12 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         {
             var ctx = ConvertJsonToContext(context);
             key = key ?? throw new SecureStoreException();
-            var passwordKey = key.GetExistingMetadata();
 
             var secret = await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
-                    IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                    return await keyVaultClient.GetCredentialAsync(passwordKey.VaultSecretName);
+                    var client = _clientFactory.CreateClient(ctx);
+                    return await client.GetCredentialAsync(key);
                 },
                 "get");
 
@@ -106,16 +106,14 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             var ctx = ConvertJsonToContext(context);
             key = key ?? throw new ArgumentNullException(nameof(key));
 
-            var passwordKey = key.GetWriteMetadata(null);
-
             await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
-                    IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                    return await keyVaultClient.SetCredentialAsync(passwordKey.VaultSecretName, value);
+                    var client = _clientFactory.CreateClient(ctx);
+                    return await client.SetCredentialAsync(key, value);
                 },
                 "set");
-            return JsonConvert.SerializeObject(passwordKey);
+            return key;
         }
 
         public async Task<string> UpdateValueAsync(string context, string key, string oldAugumentedKey, string value)
@@ -125,16 +123,23 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             oldAugumentedKey = oldAugumentedKey ?? throw new ArgumentNullException(nameof(oldAugumentedKey));
             value = value ?? throw new ArgumentNullException(nameof(value));
 
-            var passwordKey = key.GetWriteMetadata(oldAugumentedKey);
+            if (key.Equals(oldAugumentedKey, StringComparison.Ordinal))
+            {
+                await ExecuteHashicorpVaultOperation(
+                    async () =>
+                    {
+                        var client = _clientFactory.CreateClient(ctx);
+                        return await client.SetSecretAsync(key, value);
+                    },
+                    "set");
+            }
+            else
+            {
+                await CreateValueAsync(context, key, value);
+                await RemoveValueAsync(context, oldAugumentedKey);
+            }
 
-            await ExecuteHashicorpVaultOperation(
-                async () =>
-                {
-                    IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                    return await keyVaultClient.SetSecretAsync(passwordKey.VaultSecretName, value);
-                },
-                "set");
-            return JsonConvert.SerializeObject(passwordKey);
+            return key;
         }
 
         public async Task<string> UpdateCredentialsAsync(string context, string key, string oldAugumentedKey, Credential value)
@@ -144,16 +149,15 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             oldAugumentedKey = oldAugumentedKey ?? throw new ArgumentNullException(nameof(oldAugumentedKey));
             value = value ?? throw new ArgumentNullException(nameof(value));
 
-            var passwordKey = key.GetWriteMetadata(oldAugumentedKey);
-
             await ExecuteHashicorpVaultOperation(
                 async () =>
                 {
-                    IHashicorpVaultClient keyVaultClient = _clientFactory.CreateClient(ctx);
-                    return await keyVaultClient.SetCredentialAsync(passwordKey.VaultSecretName, value);
+                    var client = _clientFactory.CreateClient(ctx);
+                    return await client.SetCredentialAsync(key, value);
                 },
                 "set");
-            return JsonConvert.SerializeObject(passwordKey);
+
+            return key;
         }
 
         public void Initialize(Dictionary<string, string> hostSettings)
@@ -172,11 +176,8 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 
             var keyVaultClient = _clientFactory.CreateClient(ctx);
 
-            // The secret name is supposed to be deleted after the validation
-            // However, if the delete operation fails, and the azure key vault is set to soft-delete policy.
-            // Then the same name can not be used until the secret is purged.
-            var secretName = "UIPATH-TEST-SECRET" + Guid.NewGuid();
-            var secretValue = "SECRET";
+            var secretName = "UIPATH-TEST-SECRET-HASHICORP-VAULT";
+            var secretValue = Guid.NewGuid().ToString();
 
             var storageKey = await ExecuteHashicorpVaultOperation(
                 async () =>
@@ -192,13 +193,27 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 },
                 "get");
 
-            await ExecuteHashicorpVaultOperation(
-                async () =>
-                {
-                    // We use destroy because we don't want to leave behind key metadata with nothing inside for each edit of the store
-                    await keyVaultClient.DeleteSecretAsync(secretName, destroy: true);
-                },
-                "delete");
+            try
+            {
+                // We use destroy because we don't want to leave behind key metadata with nothing inside for each edit of the store.
+                // If destroy fails (maybe due to policies), we just delete the secret version we created.
+                // This is ok to do since we don't need to destroy secrets during normal operation, just for testing.
+                await ExecuteHashicorpVaultOperation(
+                    async () =>
+                    {
+                        await keyVaultClient.DeleteSecretAsync(secretName, destroy: true);
+                    },
+                    "destroy");
+            }
+            catch
+            {
+                await ExecuteHashicorpVaultOperation(
+                    async () =>
+                    {
+                        await keyVaultClient.DeleteSecretAsync(secretName, destroy: false);
+                    },
+                    "delete");
+            }
         }
 
         public IEnumerable<ConfigurationEntry> GetConfiguration()
@@ -287,27 +302,20 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             {
                 return await func();
             }
-            //catch (AdalServiceException asex)
-            //{
-            //    throw new SecureStoreException(
-            //        SecureStoreException.Type.InvalidCredential,
-            //        HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.InvalidSecureStoreCredentials)),
-            //        asex);
-            //}
-            //catch (KeyVaultErrorException kvee) when (kvee.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            //{
-            //    throw new SecureStoreException(
-            //        SecureStoreException.Type.UnauthorizedOperation,
-            //        HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreOperationNotAuthorizeded), operation),
-            //        kvee);
-            //}
-            //catch (KeyVaultErrorException kvee) when (kvee.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
-            //{
-            //    throw new SecureStoreException(
-            //        SecureStoreException.Type.SecretNotFound,
-            //        HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreSecretNotFound)),
-            //        kvee);
-            //}
+            catch (VaultApiException vEx) when (vEx.HttpStatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                throw new SecureStoreException(
+                    SecureStoreException.Type.UnauthorizedOperation,
+                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreOperationNotAuthorizeded), operation),
+                    vEx);
+            }
+            catch (VaultApiException vEx) when (vEx.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new SecureStoreException(
+                    SecureStoreException.Type.SecretNotFound,
+                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreSecretNotFound)),
+                    vEx);
+            }
             catch (Exception ex)
             {
                 throw new SecureStoreException($"Operation {operation} failed.", ex);
@@ -320,27 +328,20 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             {
                 await func();
             }
-            //catch (AdalServiceException asex)
-            //{
-            //    throw new SecureStoreException(
-            //        SecureStoreException.Type.InvalidCredential,
-            //        AzureKeyVaultUtils.GetLocalizedResource(nameof(Resource.InvalidSecureStoreCredentials)),
-            //        asex);
-            //}
-            //catch (KeyVaultErrorException kvee) when (kvee.Response?.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            //{
-            //    throw new SecureStoreException(
-            //        SecureStoreException.Type.UnauthorizedOperation,
-            //        AzureKeyVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreOperationNotAuthorizeded), operation),
-            //        kvee);
-            //}
-            //catch (KeyVaultErrorException kvee) when (kvee.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
-            //{
-            //    throw new SecureStoreException(
-            //        SecureStoreException.Type.SecretNotFound,
-            //        AzureKeyVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreSecretNotFound)),
-            //        kvee);
-            //}
+            catch (VaultApiException vEx) when (vEx.HttpStatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                throw new SecureStoreException(
+                    SecureStoreException.Type.UnauthorizedOperation,
+                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreOperationNotAuthorizeded), operation),
+                    vEx);
+            }
+            catch (VaultApiException vEx) when (vEx.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new SecureStoreException(
+                    SecureStoreException.Type.SecretNotFound,
+                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SecureStoreSecretNotFound)),
+                    vEx);
+            }
             catch (Exception ex)
             {
                 throw new SecureStoreException($"Operation {operation} failed.", ex);
