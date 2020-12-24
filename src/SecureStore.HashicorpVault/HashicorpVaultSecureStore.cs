@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.Configuration;
 using UiPath.Orchestrator.Extensibility.SecureStores;
@@ -8,19 +9,18 @@ using VaultSharp.Core;
 
 namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 {
-    public class HashicorpVaultSecureStore : ISecureStore
+    public abstract class HashicorpVaultSecureStore : ISecureStore
     {
-        public const string NameIdentifier = "HashicorpVault";
+        private const string NameIdentifier = "Hashicorp Vault";
 
-        private readonly IHashicorpVaultClientFactory _clientFactory;
+        protected readonly IHashicorpVaultClientFactory _clientFactory;
 
-        public HashicorpVaultSecureStore(
-            IHashicorpVaultClientFactory clientFactory)
+        protected HashicorpVaultSecureStore(IHashicorpVaultClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
         }
 
-        public HashicorpVaultSecureStore()
+        protected HashicorpVaultSecureStore()
         {
             _clientFactory = HashicorpVaultClientFactory.Instance;
         }
@@ -112,14 +112,14 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             return key;
         }
 
-        public async Task<string> UpdateValueAsync(string context, string key, string oldAugumentedKey, string value)
+        public async Task<string> UpdateValueAsync(string context, string key, string oldAugmentedKey, string value)
         {
             var ctx = ConvertJsonToContext(context);
             key = key ?? throw new ArgumentNullException(nameof(key));
-            oldAugumentedKey = oldAugumentedKey ?? throw new ArgumentNullException(nameof(oldAugumentedKey));
+            oldAugmentedKey = oldAugmentedKey ?? throw new ArgumentNullException(nameof(oldAugmentedKey));
             value = value ?? throw new ArgumentNullException(nameof(value));
 
-            if (key.Equals(oldAugumentedKey, StringComparison.Ordinal))
+            if (key.Equals(oldAugmentedKey, StringComparison.Ordinal))
             {
                 await ExecuteHashicorpVaultOperation(
                     async () =>
@@ -132,17 +132,17 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             else
             {
                 await CreateValueAsync(context, key, value);
-                await RemoveValueAsync(context, oldAugumentedKey);
+                await RemoveValueAsync(context, oldAugmentedKey);
             }
 
             return key;
         }
 
-        public async Task<string> UpdateCredentialsAsync(string context, string key, string oldAugumentedKey, Credential value)
+        public async Task<string> UpdateCredentialsAsync(string context, string key, string oldAugmentedKey, Credential value)
         {
             var ctx = ConvertJsonToContext(context);
             key = key ?? throw new ArgumentNullException(nameof(key));
-            oldAugumentedKey = oldAugumentedKey ?? throw new ArgumentNullException(nameof(oldAugumentedKey));
+            oldAugmentedKey = oldAugmentedKey ?? throw new ArgumentNullException(nameof(oldAugmentedKey));
             value = value ?? throw new ArgumentNullException(nameof(value));
 
             await ExecuteHashicorpVaultOperation(
@@ -161,14 +161,17 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             // No-op : current implementation does not have a host level configuration
         }
 
-        public SecureStoreInfo GetStoreInfo()
-        {
-            return new SecureStoreInfo { Identifier = NameIdentifier, IsReadOnly = false };
-        }
-
-        public async Task ValidateContextAsync(string context)
+        public virtual async Task ValidateContextAsync(string context)
         {
             var ctx = ConvertJsonToContext(context);
+
+            if (ctx.SecretsEngine == SecretsEngine.ActiveDirectory)
+            {
+                // ActiveDirectory is valid only for the read-only secure store
+                throw new SecureStoreException(
+                    SecureStoreException.Type.InvalidConfiguration,
+                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.HashicorpVaultSettingInvalidOrMissing), nameof(ctx.SecretsEngine)));
+            }
 
             var keyVaultClient = _clientFactory.CreateClient(ctx);
 
@@ -212,7 +215,12 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             }
         }
 
-        public IEnumerable<ConfigurationEntry> GetConfiguration()
+        public virtual SecureStoreInfo GetStoreInfo()
+        {
+            return new SecureStoreInfo { Identifier = NameIdentifier, IsReadOnly = false };
+        }
+
+        public virtual IEnumerable<ConfigurationEntry> GetConfiguration()
         {
             return new List<ConfigurationEntry>
             {
@@ -264,7 +272,9 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                     Key = "SecretsEngine",
                     DisplayName = HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.SettingSecretsEngine)),
                     IsMandatory = true,
-                    PossibleValues = Enum.GetNames(typeof(SecretsEngine)),
+                    PossibleValues = Enum.GetNames(typeof(SecretsEngine))
+                        .Except(new []{SecretsEngine.ActiveDirectory.ToString()})
+                        .ToArray(),
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
@@ -287,12 +297,12 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             };
         }
 
-        private static HashicorpVaultContext ConvertJsonToContext(string context)
+        protected static HashicorpVaultContext ConvertJsonToContext(string context)
         {
             return new HashicorpVaultContextBuilder().FromJson(context).Build();
         }
 
-        private static async Task<T> ExecuteHashicorpVaultOperation<T>(Func<Task<T>> func, string operation)
+        protected static async Task<T> ExecuteHashicorpVaultOperation<T>(Func<Task<T>> func, string operation)
         {
             try
             {
@@ -318,7 +328,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             }
         }
 
-        private static async Task ExecuteHashicorpVaultOperation(Func<Task> func, string operation)
+        protected static async Task ExecuteHashicorpVaultOperation(Func<Task> func, string operation)
         {
             try
             {
