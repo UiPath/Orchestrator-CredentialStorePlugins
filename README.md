@@ -65,6 +65,36 @@ public interface ISecureStore
 	Task RemoveValueAsync(string context, string key);
 }
  ```
+ 
+The parameter `context` from all methods on the interface is a json-serialized representation of the instance-level configuration that is defined by the method `GetConfiguration`.
+
+Example:
+
+If your configuration is:
+
+```csharp
+public IEnumerable<ConfigurationEntry> GetConfiguration()
+{
+    return new List<ConfigurationEntry>
+    {
+	new ConfigurationValue(ConfigurationValueType.String)
+	{
+	    Key = "MySetting",
+	    DisplayName = "My Setting",
+	    IsMandatory = true,
+	},
+	new ConfigurationValue(ConfigurationValueType.Boolean)
+	{
+	    Key = "MyBooleanSetting",
+	    DisplayName = "Boolean Setting",
+	    IsMandatory = false,
+	},
+    };
+}
+```
+
+the value of the `context` parameter could be: `"{"MySetting":"Value entered by user","MyBooleanSetting":true}"`, where the values are configured when adding the Secure Store instance.
+ 
  ### Info 
  The Secure store is defined by 
  ```csharp
@@ -88,7 +118,9 @@ public class SecureStoreInfo
  
  2) Secure Store Instance level configuration. Each secure store instance can specify a configuration relevant only for the current instance. The configuration is in JSON format with fields defined by `IEnumerable<ConfigurationEntry> GetConfiguration();` which will be used to dynamically create new Secure Store UI, for example, this is [the configuration](https://github.com/UiPath/Orchestrator-CredentialStorePlugins/blob/master/src/SecureStore.AzureKeyVault/AzureKeyVaultSecureStore.cs#L200) for the UI generated for a new instance of AzureKeyVault Secure Store.
  ![Azure Key Vault Config](/docs/img/SecureStoreConfig.PNG)
-When a new Secure Store is defined, the configuration will be further validated by calling `Task ValidateContextAsync(string context)`. In the case of AzureKeyVault Secure Store, the validation will check if the basic operations for Create/Read/Update/Delete are supported. 
+When a new Secure Store is defined, the configuration will be further validated by calling `Task ValidateContextAsync(string context)`. In the case of AzureKeyVault Secure Store, the validation will check if the basic operations for Create/Read/Update/Delete are supported.
+
+The parameter `context` from all methods on the interface is a json-serialized representation of this configuration.
  
   ### Assets Credentials
   
