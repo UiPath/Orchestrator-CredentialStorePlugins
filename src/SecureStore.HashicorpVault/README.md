@@ -182,6 +182,42 @@ supersecretpassword    123456
 > ```
 > You will now have a role-id and secret-id for configuring in Orchestrator
 
+## Configuring the Active Directory secrets engine
+
+1. Enable the Active Directory secrets engine:
+
+```
+vault secrets enable ad
+```
+
+2. Configure the credentials that Vault uses to communicate with Active Directory to generate passwords:
+
+```
+vault write ad/config \
+    binddn=$USERNAME \
+    bindpass=$PASSWORD \
+    url=ldaps://138.91.247.105 \
+    userdn='dc=example,dc=com'
+```
+
+3. Configure a role that maps a name in Vault to an account in Active Directory. When applications request passwords, password rotation settings will be managed by this role.
+
+```
+vault write ad/roles/orchestrator \
+    service_account_name="my-application@example.com"
+
+```
+
+4. Grant "orchestrator" access to its creds at ad/creds/orchestrator using an auth method like AppRole.
+
+```
+cat <<EOF | vault policy write orchestrator-policy -
+path "ad/creds/orchestrator" {
+  capabilities = ["read"]
+}
+EOF
+```
+
 ## Connect Orchestrator to Vault
 
 ### Configure the HashicorpVault plugin
