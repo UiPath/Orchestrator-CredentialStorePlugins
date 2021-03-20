@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 using UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault.Resources;
@@ -28,44 +27,12 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         public async Task TestConnection()
         {
             var vaultClient = GetVaultClient();
-            var secretBackends = await vaultClient.V1.System.GetSecretBackendsAsync();
-
-            SecretsEngineType vaultSecretsEngine;
-            switch (_context.SecretsEngine)
+            var health = await vaultClient.V1.System.GetHealthStatusAsync();
+            if (!health.Initialized || !health.HttpStatusCode.Equals(200))
             {
-                case SecretsEngine.KeyValueV1:
-                    vaultSecretsEngine = SecretsEngineType.KeyValueV1;
-                    break;
-                case SecretsEngine.KeyValueV2:
-                    vaultSecretsEngine = SecretsEngineType.KeyValueV2;
-                    break;
-                case SecretsEngine.Cubbyhole:
-                    vaultSecretsEngine = SecretsEngineType.CubbyHole;
-                    break;
-                case SecretsEngine.ActiveDirectory:
-                    // TODO proper engine type 
-                    vaultSecretsEngine = SecretsEngineType.Identity;
-                    break;
-                default:
-                    throw new NotSupportedException($"Secrets engine '{_context.SecretsEngine}' is not supported.");
-            };
-
-            var backend = secretBackends.Data.Values.FirstOrDefault(s => s.Type == vaultSecretsEngine);
-
-            if (backend == null)
-            {
-                // TODO error message
                 throw new SecureStoreException(
                     SecureStoreException.Type.InvalidConfiguration,
-                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.HashicorpVaultSettingInvalidOrMissing), _context.SecretsEngine));
-            }
-
-            if (backend.Path != _context.SecretsEnginePath)
-            {
-                // TODO error message
-                throw new SecureStoreException(
-                    SecureStoreException.Type.InvalidConfiguration,
-                    HashicorpVaultUtils.GetLocalizedResource(nameof(Resource.HashicorpVaultSettingInvalidOrMissing), _context.SecretsEngine));
+                    nameof(Resource.HashicorpVaultConnectionFailed));
             }
         }
 

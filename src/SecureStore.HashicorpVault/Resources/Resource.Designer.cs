@@ -61,6 +61,15 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connection to Hashicorp Vault failed..
+        /// </summary>
+        internal static string HashicorpVaultConnectionFailed {
+            get {
+                return ResourceManager.GetString("HashicorpVaultConnectionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hashicorp Vault json is invalid or is missing..
         /// </summary>
         internal static string HashicorpVaultJsonInvalidOrMissing {
