@@ -9,7 +9,7 @@ using VaultSharp.Core;
 
 namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 {
-    public abstract class HashicorpVaultSecureStore : ISecureStore
+    public class HashicorpVaultSecureStore : ISecureStore
     {
         private const string NameIdentifier = "Hashicorp Vault";
 
@@ -20,7 +20,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
             _clientFactory = clientFactory;
         }
 
-        protected HashicorpVaultSecureStore()
+        public HashicorpVaultSecureStore()
         {
             _clientFactory = HashicorpVaultClientFactory.Instance;
         }
