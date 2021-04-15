@@ -19,12 +19,13 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         {
         }
 
-        public override async Task ValidateContextAsync(string context)
+        public override Task ValidateContextAsync(string context)
         {
-            var ctx = ConvertJsonToContext(context);
+            _ = ConvertJsonToContext(context);
 
-            var keyVaultClient = _clientFactory.CreateClient(ctx);
-            await keyVaultClient.TestConnection();
+            // Doing a health check would require a policy to read `sys/health`.
+            // We don't want to require more than strictly necessary, so we only do 
+            return Task.CompletedTask;
         }
 
         public override SecureStoreInfo GetStoreInfo()

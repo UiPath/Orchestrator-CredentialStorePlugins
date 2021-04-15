@@ -5,8 +5,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
 {
     public interface IHashicorpVaultClient
     {
-        Task TestConnection();
-
         Task<string> GetSecretAsync(string secretName);
 
         Task<string> SetSecretAsync(string secretName, string secretValue);

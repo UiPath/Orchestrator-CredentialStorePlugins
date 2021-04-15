@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UiPath.Orchestrator.Extensibility.SecureStores;
-using UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault.Resources;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.AppRole;
@@ -22,18 +21,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
         public HashicorpVaultClient(HashicorpVaultContext context)
         {
             _context = context;
-        }
-
-        public async Task TestConnection()
-        {
-            var vaultClient = GetVaultClient();
-            var health = await vaultClient.V1.System.GetHealthStatusAsync();
-            if (!health.Initialized || !health.HttpStatusCode.Equals(200))
-            {
-                throw new SecureStoreException(
-                    SecureStoreException.Type.InvalidConfiguration,
-                    nameof(Resource.HashicorpVaultConnectionFailed));
-            }
         }
 
         public async Task<string> GetSecretAsync(string secretName)
