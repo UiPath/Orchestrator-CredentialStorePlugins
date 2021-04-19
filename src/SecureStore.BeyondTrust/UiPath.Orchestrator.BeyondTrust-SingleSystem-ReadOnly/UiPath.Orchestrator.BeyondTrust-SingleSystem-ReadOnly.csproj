@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>UiPath.Orchestrator.BeyondTrust_ReadOnly</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UiPath.Orchestrator.BeyondTrust\UiPath.Orchestrator.BeyondTrust.csproj" />
+  </ItemGroup>
+
+</Project>
