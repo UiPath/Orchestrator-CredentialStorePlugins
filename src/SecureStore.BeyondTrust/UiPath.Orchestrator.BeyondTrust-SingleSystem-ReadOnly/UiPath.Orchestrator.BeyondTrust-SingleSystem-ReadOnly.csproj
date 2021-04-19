@@ -8,5 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\UiPath.Orchestrator.BeyondTrust\UiPath.Orchestrator.BeyondTrust.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Reference Include="UiPath.BeyondInsight.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+  </ItemGroup>
 </Project>

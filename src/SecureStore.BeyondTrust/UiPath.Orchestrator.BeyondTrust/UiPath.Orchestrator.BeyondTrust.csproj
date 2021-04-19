@@ -7,9 +7,18 @@
 
   <ItemGroup>
     <PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BeyondTrust.BeyondInsight.API\BeyondTrust.BeyondInsight.API.csproj" />
+    <Folder Include="lib\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UiPath.BeyondInsight.API">
+      <HintPath>lib\UiPath.BeyondInsight.API.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove=".DS_Store" />
   </ItemGroup>
 </Project>
