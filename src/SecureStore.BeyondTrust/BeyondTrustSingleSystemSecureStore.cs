@@ -100,8 +100,6 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust
             }
             client.SignOut();
             return new Credential { Username = managedAccountResult.Value.AccountName, Password = isaRequestResult.Value };
-
-
         }
 
         public async Task<string> UpdateCredentialsAsync(string context, string key, string oldAugumentedKey, Credential value)
