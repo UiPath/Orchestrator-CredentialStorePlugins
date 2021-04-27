@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using UiPath.Orchestrator.BeyondTrust;
 using UiPath.Orchestrator.Extensibility.Configuration;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 
-namespace UiPath.Orchestrator.BeyondTrustSingleSystemReadOnly
+namespace UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust
 {
     public class BeyondTrustSingleSystemSecureStore : ISecureStore
     {
@@ -27,40 +26,40 @@ namespace UiPath.Orchestrator.BeyondTrustSingleSystemReadOnly
             {
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "Hostname",
+                    Key = ConfigurationConstants.Hostname,
                     DisplayName = "BeyondTrust Host URL",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "AuthKey",
+                    Key = ConfigurationConstants.AuthKey,
                     DisplayName = "API Authentication Key",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "RunAs",
+                    Key = ConfigurationConstants.RunAs,
                     DisplayName = "API Run As",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.Boolean)
                 {
-                    Key = "SSLEnabled",
+                    Key = ConfigurationConstants.SSLEnabled,
                     DisplayName = "Use SSL certificate",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "ManagedSystemName",
+                    Key = ConfigurationConstants.ManagedSystemName,
                     DisplayName = "Managed System Name",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.Choice)
                 {
-                    Key = "ManagedAccountType",
+                    Key = ConfigurationConstants.ManagedAccountType,
                     DisplayName = "Managed Account Type",
                     IsMandatory = true,
-                    PossibleValues = new List<string> { "system", "domainlinked" }
+                    PossibleValues = new List<string> { ConfigurationConstants.SystemAccountType, ConfigurationConstants.DomainAccountType }
                 },
             };
         }
@@ -80,7 +79,7 @@ namespace UiPath.Orchestrator.BeyondTrustSingleSystemReadOnly
             var config = JsonConvert.DeserializeObject<Dictionary<string, object>>(context);
             var client = BeyondTrustVaultClientFactory.GetClient(context);
             client.SignIn();
-            var managedAccountResult = client.ManagedAccounts.GetRequestable(config["ManagedSystemName"].ToString(), key, config["ManagedAccountType"].ToString());
+            var managedAccountResult = client.ManagedAccounts.GetRequestable(config[ConfigurationConstants.ManagedSystemName].ToString(), key, config[ConfigurationConstants.ManagedAccountType].ToString());
             if (!managedAccountResult.IsSuccess)
             {
                 if (managedAccountResult.StatusCode.Equals(HttpStatusCode.NotFound))

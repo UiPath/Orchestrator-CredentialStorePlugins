@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace UiPath.Orchestrator.BeyondTrust
+namespace UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust
 {
     public class BeyondTrustVaultClientFactory
     {

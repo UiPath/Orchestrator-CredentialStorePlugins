@@ -3,11 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using UiPath.Orchestrator.BeyondTrust;
 using UiPath.Orchestrator.Extensibility.Configuration;
 using UiPath.Orchestrator.Extensibility.SecureStores;
 
-namespace UiPath.Orchestrator.BeyondTrustDynamicSystemReadOnly
+namespace UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust
 {
     public class BeyondTrustDynamicSystemSecureStore : ISecureStore
     {
@@ -26,41 +25,41 @@ namespace UiPath.Orchestrator.BeyondTrustDynamicSystemReadOnly
             {
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "Hostname",
+                    Key = ConfigurationConstants.Hostname,
                     DisplayName = "BeyondTrust Host URL",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "AuthKey",
+                    Key = ConfigurationConstants.AuthKey,
                     DisplayName = "API Authentication Key",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "RunAs",
+                    Key = ConfigurationConstants.RunAs,
                     DisplayName = "API Run As",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.Boolean)
                 {
-                    Key = "SSLEnabled",
+                    Key = ConfigurationConstants.SSLEnabled,
                     DisplayName = "Use SSL certificate",
                     IsMandatory = true,
                 },
                 new ConfigurationValue(ConfigurationValueType.String)
                 {
-                    Key = "SystemAccountDelimiter",
+                    Key = ConfigurationConstants.SystemAccountDelimiter,
                     DisplayName = "System-Account Delimiter",
                     IsMandatory = true,
                     DefaultValue = "/",
                 },
                 new ConfigurationValue(ConfigurationValueType.Choice)
                 {
-                    Key = "ManagedAccountType",
+                    Key = ConfigurationConstants.ManagedAccountType,
                     DisplayName = "Managed Account Type",
                     IsMandatory = true,
-                    PossibleValues = new List<string> { "system", "domainlinked" }
+                    PossibleValues = new List<string> { ConfigurationConstants.SystemAccountType, ConfigurationConstants.DomainAccountType }
                 },
             };
 
@@ -77,7 +76,7 @@ namespace UiPath.Orchestrator.BeyondTrustDynamicSystemReadOnly
         public async Task<Credential> GetCredentialsAsync(string context, string key)
         {
             var config = JsonConvert.DeserializeObject<Dictionary<string, object>>(context);
-            var splitDelimiter = new string[] { config["SystemAccountDelimiter"].ToString() };
+            var splitDelimiter = new string[] { config[ConfigurationConstants.SystemAccountDelimiter].ToString() };
             var keyPieces = key.Split(splitDelimiter, StringSplitOptions.None);
 
             if (keyPieces.Length != 2)
@@ -90,7 +89,7 @@ namespace UiPath.Orchestrator.BeyondTrustDynamicSystemReadOnly
 
             var client = BeyondTrustVaultClientFactory.GetClient(context);
             client.SignIn();
-            var managedAccountResult = client.ManagedAccounts.GetRequestable(managedSystemName, managedAccountName, config["ManagedAccountType"].ToString());
+            var managedAccountResult = client.ManagedAccounts.GetRequestable(managedSystemName, managedAccountName, config[ConfigurationConstants.ManagedAccountType].ToString());
             if (!managedAccountResult.IsSuccess)
             {
                 if (managedAccountResult.StatusCode.Equals(HttpStatusCode.NotFound))
