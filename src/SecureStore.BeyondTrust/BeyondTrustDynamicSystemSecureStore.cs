@@ -80,7 +80,7 @@ namespace UiPath.Orchestrator.BeyondTrustDynamicSystemReadOnly
             var splitDelimiter = new string[] { config["SystemAccountDelimiter"].ToString() };
             var keyPieces = key.Split(splitDelimiter, StringSplitOptions.None);
 
-            if (keyPieces.Length > 2)
+            if (keyPieces.Length != 2)
             {
                 throw new SecureStoreException(SecureStoreException.Type.InvalidConfiguration, "Splitting by delimiter " + splitDelimiter + " results in " + keyPieces.Length.ToString() + " parts");
             }
