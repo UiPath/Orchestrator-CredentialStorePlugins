@@ -78,32 +78,41 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust
         {
             var config = JsonConvert.DeserializeObject<Dictionary<string, object>>(context);
             var client = BeyondTrustVaultClientFactory.GetClient(context);
+            var semaphore = SemaphoreFactory.SemaphoreSlim;
+            await semaphore.WaitAsync();
             try
             {
-                client.SignIn();
-                var managedAccountResult = client.ManagedAccounts.GetRequestable(config[ConfigurationConstants.ManagedSystemName].ToString(), key, config[ConfigurationConstants.ManagedAccountType].ToString());
-                if (!managedAccountResult.IsSuccess)
+                try
                 {
-                    if (managedAccountResult.StatusCode.Equals(HttpStatusCode.NotFound))
+                    client.SignIn();
+                    var managedAccountResult = client.ManagedAccounts.GetRequestable(config[ConfigurationConstants.ManagedSystemName].ToString(), key, config[ConfigurationConstants.ManagedAccountType].ToString());
+                    if (!managedAccountResult.IsSuccess)
                     {
-                        throw new SecureStoreException(SecureStoreException.Type.UnsupportedOperation, "Managed Account not found");
+                        if (managedAccountResult.StatusCode.Equals(HttpStatusCode.NotFound))
+                        {
+                            throw new SecureStoreException(SecureStoreException.Type.UnsupportedOperation, "Managed Account not found");
+                        }
+                        else
+                        {
+                            throw new SecureStoreException(SecureStoreException.Type.UnsupportedOperation, "Managed account retreival failed");
+                        }
                     }
-                    else
-                    {
-                        throw new SecureStoreException(SecureStoreException.Type.UnsupportedOperation, "Managed account retreival failed");
-                    }
-                }
 
-                var isaRequestResult = client.ISARequests.Post(managedAccountResult.Value.AccountId, managedAccountResult.Value.SystemId, 1, "UiPath Credential Store request");
-                if (!isaRequestResult.IsSuccess)
-                {
-                    throw new SecureStoreException(SecureStoreException.Type.UnsupportedOperation, "ISA request failed with code " + isaRequestResult.StatusCode + " and message: " + isaRequestResult.Message);
+                    var isaRequestResult = client.ISARequests.Post(managedAccountResult.Value.AccountId, managedAccountResult.Value.SystemId, 1, "UiPath Credential Store request");
+                    if (!isaRequestResult.IsSuccess)
+                    {
+                        throw new SecureStoreException(SecureStoreException.Type.UnsupportedOperation, "ISA request failed with code " + isaRequestResult.StatusCode + " and message: " + isaRequestResult.Message);
+                    }
+                    return new Credential { Username = managedAccountResult.Value.AccountName, Password = isaRequestResult.Value };
                 }
-                return new Credential { Username = managedAccountResult.Value.AccountName, Password = isaRequestResult.Value };
+                finally
+                {
+                    client.SignOut();
+                }
             }
             finally
             {
-                client.SignOut();
+                semaphore.Release();
             }
         }
 
