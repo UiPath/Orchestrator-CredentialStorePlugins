@@ -244,3 +244,27 @@ The last step is to restart Orchestrator. You should now see the new Credential 
 | `Namespace`          | The [namespace](https://www.vaultproject.io/docs/enterprise/namespaces) to use. Only available in Hashicorp Vault Enterprise.                                                                                                                                                                                                           | `orchestrator`                         |
 
      
+## Using the Read-Only plugin
+
+When using a read-only version of the credential store plugin, it is the Vault admin's responsibility to correctly provision the secrets that will be used in Orchestrator. The format in which these need to be provisioned differs between secret type (asset vs robot password), and between secret engines.
+
+### Read-only KeyValueV1, KeyValueV2, Cubbyhole
+
+#### Storing Assets in read-only credential store
+
+When storing an asset of type `Credential` in a read-only credential store, you must create the secret in Vault with:
+- the path of the secret must contain the data path configured for the credential store, concatenated with the External Name configured for that value (if using values per robot) or the asset name otherwise. E.g: if the data path is `applications/orchestrator/assets` and the External Name is `SAPCredentials`, then the secret's path must be `applications/orchestrator/assets/SAPCredentials`.
+- inside the secret, you must have:
+    - a key named `Username`, with the value containing the username of the credentials.
+    - a key named `Password`, with the value containing the password of the credentials.
+
+
+#### Storing unattended robot passwords in read-only credential store
+
+When storing an unattended robot password in a read-only credential store, you must create the secret in Vault with:
+- the path of the secret must contain the data path configured for the credential store, concatenated with the External Name configured for that robot. E.g: if the data path is `applications/orchestrator/robots` and the External Name is `robot01`, then the secret's path must be `applications/orchestrator/robots/robot01`.
+- inside the secret, you must have a key named the same as the External Name (e.g. `robot01`) and the value must be this robot's password.
+
+### Read-only ActiveDirectory
+
+See [Configuring the Active Directory secrets engine](#Configuring-the-Active-Directory-secrets-engine)
