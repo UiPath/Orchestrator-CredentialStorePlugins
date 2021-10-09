@@ -169,6 +169,7 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 var tokenExpiryDate = _vaultClientCreationTime.AddSeconds(_vaultClient.Settings.AuthMethodInfo.ReturnedLoginAuthInfo.LeaseDurationSeconds);
                 if (tokenExpiryDate < DateTimeOffset.UtcNow.AddSeconds(30))
                 {
+                    _vaultClientCreationTime = DateTimeOffset.UtcNow;
                     _vaultClient.V1.Auth.ResetVaultToken();
                 }
             }
