@@ -35,6 +35,9 @@ namespace UiPath.Orchestrator.Extensions.SecureStores.HashicorpVault
                 case SecretsEngine.KeyValueV2:
                     var kvv2Secret = await vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync<Dictionary<string, string>>(path, mountPoint: _context.SecretsEnginePath ?? SecretsEngineDefaultPaths.KeyValueV2);
                     return kvv2Secret.Data.Data[secretName];
+                case SecretsEngine.ActiveDirectory:
+                    var adSecret = await vaultClient.V1.Secrets.ActiveDirectory.GetCredentialsAsync(Uri.EscapeDataString(secretName), mountPoint: _context.SecretsEnginePath ?? SecretsEngineDefaultPaths.ActiveDirectory);
+                    return adSecret.Data.CurrentPassword;
                 case SecretsEngine.Cubbyhole:
                     var cubbySecret = await vaultClient.V1.Secrets.Cubbyhole.ReadSecretAsync(path);
                     return cubbySecret.Data[secretName].ToString();
