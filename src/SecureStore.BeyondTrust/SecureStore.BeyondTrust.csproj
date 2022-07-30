@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AssemblyName>UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust</AssemblyName>
+		<RootNamespace>UiPath.Orchestrator.Extensions.SecureStores.BeyondTrust</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="UiPath.Orchestrator.Extensibility" Version="1.0.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="lib\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="UiPath.BeyondInsight.API">
+			<HintPath>lib\UiPath.BeyondInsight.API.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+</Project>
